@@ -70,6 +70,19 @@ const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vTEY4x9pPY_4cuz6p
 function parseCSV(source){const rows=[];let row=[],field='',quoted=false;for(let i=0;i<source.length;i++){const c=source[i];if(c==='"'){if(quoted&&source[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&source[i+1]==='\n')i++;row.push(field);if(row.some(x=>x!==''))rows.push(row);row=[];field=''}else field+=c}row.push(field);if(row.some(x=>x!==''))rows.push(row);return rows}
 (async()=>{const status=document.getElementById('data-status');try{const response=await fetch(CSV_URL,{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);const rows=parseCSV(await response.text());let updated=0;for(const cells of rows.slice(1)){const key=(cells[0]||'').trim();const value=(cells[2]||'').trim();if(!/^\d+$/.test(value))continue;document.querySelectorAll('[data-indicator]').forEach(el=>{if(el.dataset.indicator===key){el.textContent=value;updated++}})}if(updated===0)throw Error('Sem indicadores reconhecidos');status.textContent='Indicadores institucionais publicados pela AME.'}catch(err){console.warn('Indicadores indisponíveis:',err);status.textContent='Indicadores temporariamente indisponíveis. Consulte novamente mais tarde.'}})();
 </script>
+<script>
+// Indicadores financeiros públicos: apenas os valores autorizados para divulgação.
+const URL_FINANCEIRO_AME = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTEY4x9pPY_4cuz6pXAz4hN1R1Evs2J4jO_o3m1qaNDqj_-wzU7m5yWR8FhCkxYMTJH4POz1KadqL6e/pub?gid=1052022694&single=true&output=csv";
+
+function formatarMoedaAME(texto) {
+  const original = String(texto ?? "").trim();
+  if (!original) return null;
+  const limpo = original.replace(/R\$/gi, "").replace(/[\s\u00a0]/g, "");
+  // CSV publicado pelo Google Sheets no formato pt-BR (ex.: R$ 1.250,75).
+  const numero = Number(limpo.replace(/\./g, "").replace(",", "."));
+  if (!Number.isFinite(numero)) return null;
+  return numero.toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+}
 
 async function carregarFinanceiroAME() {
   const campos = {
@@ -77,81 +90,34 @@ async function carregarFinanceiroAME() {
     despesas_pagas: "financeiro-despesas",
     saldo_financeiro: "financeiro-saldo"
   };
-
   try {
-    const resposta = await fetch(URL_FINANCEIRO_AME, {
-      cache: "no-store"
-    });
-
-    if (!resposta.ok) throw new Error("Falha na consulta");
-
-    const csv = await resposta.text();
-    const linhas = csv.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
-
-    for (const linha of linhas.slice(1)) {
-    
-const colunas = [];
-let campo = "";
-let entreAspas = false;
-
-for (let i = 0; i < linha.length; i++) {
-  const caractere = linha[i];
-
-  if (caractere === '"') {
-    if (entreAspas && linha[i + 1] === '"') {
-      campo += '"';
-      i++;
-    } else {
-      entreAspas = !entreAspas;
+    const resposta = await fetch(URL_FINANCEIRO_AME, {cache:"no-store"});
+    if (!resposta.ok) throw new Error("Falha HTTP " + resposta.status);
+    // Reutiliza o leitor CSV já utilizado pelos indicadores institucionais.
+    const linhas = parseCSV((await resposta.text()).replace(/^\uFEFF/, ""));
+    const encontrados = new Set();
+    for (const colunas of linhas.slice(1)) {
+      const identificador = (colunas[0] || "").trim();
+      const id = campos[identificador];
+      if (!id) continue;
+      const elemento = document.getElementById(id);
+      if (!elemento) continue;
+      elemento.textContent = formatarMoedaAME(colunas[2]) || "Indisponível";
+      encontrados.add(identificador);
     }
-  } else if (caractere === "," && !entreAspas) {
-    colunas.push(campo);
-    campo = "";
-  } else {
-    campo += caractere;
-  }
-}
-
-colunas.push(campo);
-  
-
-      const identificador = colunas[0]?.trim();
-      const elemento = document.getElementById(campos[identificador]);
-
-      if (elemento) {
-       
-const valor = (colunas[2] || "").trim();
-const numero = Number(
-  valor.replace(/[R$\s\u00a0]/g, "")
-       .replace(/\./g, "")
-       .replace(",", ".")
-);
-
-elemento.textContent =
-  valor && Number.isFinite(numero)
-    ? numero.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      })
-    : "Indisponível";
-  
-      }
+    for (const [chave, id] of Object.entries(campos)) {
+      if (!encontrados.has(chave)) document.getElementById(id).textContent = "Indisponível";
     }
   } catch (erro) {
     console.error("Erro financeiro AME:", erro);
-
     Object.values(campos).forEach(id => {
       const elemento = document.getElementById(id);
       if (elemento) elemento.textContent = "Indisponível";
     });
   }
 }
-
 carregarFinanceiroAME();
-  
-<script>
-const URL_FINANCEIRO_AME = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTEY4x9pPY_4cuz6pXAz4hN1R1Evs2J4jO_o3m1qaNDqj_-wzU7m5yWR8FhCkxYMTJH4POz1KadqL6e/pub?gid=1052022694&single=true&output=csv";
 </script>
-  
+
 </body>
 </html>
