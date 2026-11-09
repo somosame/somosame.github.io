@@ -30,6 +30,38 @@
 <section class="light" id="projetos"><div class="wrap"><div class="sectionhead"><span class="kicker">Nossas iniciativas</span><h2>Projetos que criam oportunidades.</h2><p>Conheça as frentes de atuação da AME. Cada projeto tem seu ritmo, sua equipe e seu propósito.</p></div><div class="cards"><article class="card"><div class="cardtop">   <img     src="assets/LOGO ESCOLINHA FUTEBOL AME.png"     alt="Logotipo oficial da Escolinha de Futebol AME"     style="display:block;width:auto;height:auto;max-width:85%;max-height:125px;object-fit:contain;margin:auto;"   > </div><div class="cardbody"><span class="tag">Em atividade</span><h3>Escolinha de Futebol AME</h3><p>O futebol como espaço de convivência, aprendizado, amizade, disciplina e formação de valores.</p></div></article><article class="card"><div class="cardtop">   <img     src="assets/LOGO BRAVO.png"     alt="Logotipo oficial do Projeto BRAVO"     style="display:block;width:auto;height:auto;max-width:85%;max-height:125px;object-fit:contain;margin:auto;"   > </div><div class="cardbody"><span class="tag">Em planejamento</span><h3>Projeto BRAVO</h3><p>Bravura, Respeito, Autocontrole, Vitalidade e Otimismo: valores trabalhados em experiências com adolescentes.</p></div></article><article class="card"><div class="cardtop" aria-hidden="true">✦</div><div class="cardbody"><span class="tag">Em planejamento</span><h3>Projeto Eu Lidero</h3><p>Uma iniciativa em desenvolvimento para incentivar responsabilidade, protagonismo e liderança.</p></div></article></div></div></section>
 <section class="band"><div class="wrap"><h2>O futuro se constrói quando ninguém fica para trás.</h2><a class="btn" href="https://www.instagram.com/somosame.oficial/" target="_blank" rel="noopener noreferrer">Conecte-se com a AME</a></div></section>
 <section id="transparencia"><div class="wrap two"><div><span class="kicker">Compromisso e responsabilidade</span><div class="sectionhead"><h2>Transparência que fortalece a confiança.</h2><p>Estamos estruturando nosso portal de transparência para apresentar informações institucionais, projetos, resultados e prestações de contas com clareza.</p></div><ul class="checks"><li>Informações dos projetos e suas atividades</li><li>Indicadores institucionais</li><li>Relatórios e documentos aprovados para divulgação</li></ul><p class="notice">A publicação detalhada dos relatórios financeiros e documentos está em preparação.</p></div><div class="feature"><b>100%</b><p>Compromisso com uma comunicação clara, responsável e acessível sobre nossas ações.</p><span class="eyebrow">Portal em desenvolvimento</span></div></div></section>
+  <!-- INICIO DO PAINEL FINANCEIRO AME -->
+  
+<section id="financeiro" style="padding:55px 0;background:#111827;color:#fff">
+  <div class="wrap">
+    <span class="eyebrow">Prestação de contas</span>
+    <div class="sectionhead">
+      <h2>Transparência financeira</h2>
+      <p>Receitas, despesas e saldo financeiro da Agência Missional Elim.</p>
+    </div>
+
+    <div id="painel-financeiro" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-top:28px">
+      <div class="card" style="padding:25px;text-align:center;color:#111827">
+        <h3>Receitas recebidas</h3>
+        <p id="financeiro-receitas" style="font-size:28px;font-weight:800">Carregando...</p>
+      </div>
+      <div class="card" style="padding:25px;text-align:center;color:#111827">
+        <h3>Despesas pagas</h3>
+        <p id="financeiro-despesas" style="font-size:28px;font-weight:800">Carregando...</p>
+      </div>
+      <div class="card" style="padding:25px;text-align:center;color:#111827">
+        <h3>Saldo financeiro</h3>
+        <p id="financeiro-saldo" style="font-size:28px;font-weight:800">Carregando...</p>
+      </div>
+    </div>
+
+    <p style="margin-top:20px;font-size:13px;opacity:.75">
+      Valores referentes às movimentações financeiras registradas pela AME.
+    </p>
+  </div>
+</section>
+<!-- FIM DO PAINEL FINANCEIRO AME -->
+  
 </main>
 <footer class="footer"><div class="wrap"><div class="footergrid"><div><div class="brand">SOMOS<span>AME</span></div><p>Agência Missional Elim<br>Transformando vidas. Construindo futuros.</p></div><div><strong>Acompanhe a AME</strong><p><a href="https://www.instagram.com/somosame.oficial/" target="_blank" rel="noopener noreferrer">Instagram @somosame.oficial</a></p></div></div><hr style="border:0;border-top:1px solid #ffffff2b;margin:30px 0 20px"><div class="small">© <span id="year"></span> Agência Missional Elim — AME. Todos os direitos reservados.</div></div></footer>
 <script>
@@ -38,5 +70,88 @@ const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vTEY4x9pPY_4cuz6p
 function parseCSV(source){const rows=[];let row=[],field='',quoted=false;for(let i=0;i<source.length;i++){const c=source[i];if(c==='"'){if(quoted&&source[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&source[i+1]==='\n')i++;row.push(field);if(row.some(x=>x!==''))rows.push(row);row=[];field=''}else field+=c}row.push(field);if(row.some(x=>x!==''))rows.push(row);return rows}
 (async()=>{const status=document.getElementById('data-status');try{const response=await fetch(CSV_URL,{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);const rows=parseCSV(await response.text());let updated=0;for(const cells of rows.slice(1)){const key=(cells[0]||'').trim();const value=(cells[2]||'').trim();if(!/^\d+$/.test(value))continue;document.querySelectorAll('[data-indicator]').forEach(el=>{if(el.dataset.indicator===key){el.textContent=value;updated++}})}if(updated===0)throw Error('Sem indicadores reconhecidos');status.textContent='Indicadores institucionais publicados pela AME.'}catch(err){console.warn('Indicadores indisponíveis:',err);status.textContent='Indicadores temporariamente indisponíveis. Consulte novamente mais tarde.'}})();
 </script>
+
+async function carregarFinanceiroAME() {
+  const campos = {
+    receitas_recebidas: "financeiro-receitas",
+    despesas_pagas: "financeiro-despesas",
+    saldo_financeiro: "financeiro-saldo"
+  };
+
+  try {
+    const resposta = await fetch(URL_FINANCEIRO_AME, {
+      cache: "no-store"
+    });
+
+    if (!resposta.ok) throw new Error("Falha na consulta");
+
+    const csv = await resposta.text();
+    const linhas = csv.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
+
+    for (const linha of linhas.slice(1)) {
+    
+const colunas = [];
+let campo = "";
+let entreAspas = false;
+
+for (let i = 0; i < linha.length; i++) {
+  const caractere = linha[i];
+
+  if (caractere === '"') {
+    if (entreAspas && linha[i + 1] === '"') {
+      campo += '"';
+      i++;
+    } else {
+      entreAspas = !entreAspas;
+    }
+  } else if (caractere === "," && !entreAspas) {
+    colunas.push(campo);
+    campo = "";
+  } else {
+    campo += caractere;
+  }
+}
+
+colunas.push(campo);
+  
+
+      const identificador = colunas[0]?.trim();
+      const elemento = document.getElementById(campos[identificador]);
+
+      if (elemento) {
+       
+const valor = (colunas[2] || "").trim();
+const numero = Number(
+  valor.replace(/[R$\s\u00a0]/g, "")
+       .replace(/\./g, "")
+       .replace(",", ".")
+);
+
+elemento.textContent =
+  valor && Number.isFinite(numero)
+    ? numero.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      })
+    : "Indisponível";
+  
+      }
+    }
+  } catch (erro) {
+    console.error("Erro financeiro AME:", erro);
+
+    Object.values(campos).forEach(id => {
+      const elemento = document.getElementById(id);
+      if (elemento) elemento.textContent = "Indisponível";
+    });
+  }
+}
+
+carregarFinanceiroAME();
+  
+<script>
+const URL_FINANCEIRO_AME = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTEY4x9pPY_4cuz6pXAz4hN1R1Evs2J4jO_o3m1qaNDqj_-wzU7m5yWR8FhCkxYMTJH4POz1KadqL6e/pub?gid=1052022694&single=true&output=csv";
+</script>
+  
 </body>
 </html>
